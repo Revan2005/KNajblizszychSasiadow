@@ -1,0 +1,14 @@
+@relation wyklad
+
+@attribute Rozmiar {sredni,maly,duzy}
+@attribute Kolor {niebieski,czerwony,zielony}
+@attribute Ksztalt {kostka,kula,slup,klin}
+@attribute Decyzja {t,n}
+@data
+sredni,niebieski,kostka,t
+maly,czerwony,kula,t
+duzy,zielony,slup,t
+duzy,zielony,kula,t
+maly,czerwony,klin,n
+duzy,czerwony,klin,n
+duzy,czerwony,slup,n
