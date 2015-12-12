@@ -57,16 +57,40 @@ public class Main {
 		dyskretyzujOneR(minObjectsInPartition);
 		
 //koniec procedury dyskretyzacji metoda dyskretyzacji jest zawarta w klasie atrybut=======================
-//zeby pokazac reguly dla calego zbioru danych ustawic liczbe foldow na 1 i przejsc do ILA.java - wiersz 37		
 */
+		int liczbaMiar = 4;
+		double[] sumaWynikowCzesciowych = new double[liczbaMiar];
+		int liczbaTestow = 100;
+		liczbaFoldow = 5;
+		int liczbaSasiadow = 5;	
+		//String metryka = "manhattan";
+		//String metryka = "euclidean";
+		//String metryka = "czebyszew";
+		String metryka = "mahalanobis";
+		//String metodaGlosowania = "rownoprawne_wiekszosciowe";
+		String metodaGlosowania = "wazone_odleglosciami";
 		
-/*//kroswalidacja
-		liczbaFoldow = 2;
-		Kroswalidacja kroswalidacja = new Kroswalidacja(liczbaFoldow, dane, liczbaSasiadow);
+		for(int i=0; i<liczbaTestow; i++){
+			Kroswalidacja kroswalidacja = new Kroswalidacja(liczbaFoldow, dane, liczbaSasiadow, metryka, metodaGlosowania);
+			wyniki = kroswalidacja.getWynikKroswalidacji();
+			for(int j=0; j<liczbaMiar; j++){
+				sumaWynikowCzesciowych[j] += wyniki[j];
+			}
+		}
+		for(int i=0; i<liczbaMiar; i++)
+			wyniki[i] = sumaWynikowCzesciowych[i] / liczbaTestow;		
+		
+		
+/*//kroswalidacja jeden raz
+		liczbaFoldow = 5;
+		int liczbaSasiadow = 5;	
+		String metryka = "mahalanobis";
+		String metodaGlosowania = "rownoprawne_wiekszosciowe";
+		Kroswalidacja kroswalidacja = new Kroswalidacja(liczbaFoldow, dane, liczbaSasiadow, metryka, metodaGlosowania);
 		wyniki = kroswalidacja.getWynikKroswalidacji();
 //koniec kroswalidacji*/
 		
-//uczenie i testowanie na tym samym zbiorze
+/*//uczenie i testowanie na tym samym zbiorze
 		int liczbaSasiadow = 5;	
 		String metryka = "mahalanobis";
 		// sposob glosowania
@@ -74,7 +98,7 @@ public class Main {
 		KlasyfikatorKNN klasyfikator = new KlasyfikatorKNN(liczbaSasiadow, metryka, metodaGlosowania, dane);
 		Testowanie testowanie = new Testowanie(klasyfikator, dane);
 		wyniki = testowanie.getWynikiKoncowe();
-//koniec uczenia i testowania na tym samym zbiorze		
+//koniec uczenia i testowania na tym samym zbiorze	*/	
 		piszWyniki();
 		
 	}

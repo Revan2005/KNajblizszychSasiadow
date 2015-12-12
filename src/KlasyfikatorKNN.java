@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class KlasyfikatorKNN {
 	ArrayList<Obiekt> zbiorUczacy;
@@ -16,7 +17,7 @@ public class KlasyfikatorKNN {
 		wariancjeAtrybutow = getWariancjeAtrybutowWZbiorzeUczacym();
 	}
 	
-	public String getClass(Obiekt o){
+	public String getClass(Obiekt obiekt_testowy){
 		ArrayList<Obiekt> kopiaZbioruUczacego = new ArrayList<Obiekt>();
 		for(int i = 0; i < zbiorUczacy.size(); i++){
 			kopiaZbioruUczacego.add(new Obiekt(zbiorUczacy.get(i)));
@@ -25,20 +26,20 @@ public class KlasyfikatorKNN {
 		//najblizsi sasiedzi beda ustawieni w kolejnosci od najblizszego do najdalszego
 		Obiekt sasiad;
 		while(najblizsziSasiedzi.size() < liczbaSasiadow){
-			sasiad = getKolejnyNajblizszy(o, kopiaZbioruUczacego);
+			sasiad = getKolejnyNajblizszy(obiekt_testowy, kopiaZbioruUczacego);
 			najblizsziSasiedzi.add( sasiad );
 		}
-		String klasa = wybierzKlasePrzezGlosowanie(najblizsziSasiedzi);
+		String klasa = wybierzKlasePrzezGlosowanie(obiekt_testowy, najblizsziSasiedzi);
 		return klasa;
 	}
 	
-	private Obiekt getKolejnyNajblizszy( Obiekt o, ArrayList<Obiekt> zbior ){
+	private Obiekt getKolejnyNajblizszy( Obiekt obiekt_testowy, ArrayList<Obiekt> zbior ){
 		Obiekt najblizszySasiadWZbiorze = zbior.get(0);
 		int index_najblizszego_obiektu = 0;
-		double min_distance = getDistance(o, zbior.get(0));
+		double min_distance = getDistance(obiekt_testowy, zbior.get(0));
 		double distance;
 		for( int index_obiektu = 0; index_obiektu < zbior.size(); index_obiektu++ ){
-			distance = getDistance(o, zbior.get(index_obiektu));
+			distance = getDistance(obiekt_testowy, zbior.get(index_obiektu));
 			if( distance < min_distance ){
 				najblizszySasiadWZbiorze = new Obiekt(zbior.get(index_obiektu));
 				index_najblizszego_obiektu = index_obiektu;
@@ -50,12 +51,12 @@ public class KlasyfikatorKNN {
 		return najblizszySasiadWZbiorze;
 	}
 	
-	private String wybierzKlasePrzezGlosowanie(ArrayList<Obiekt> najblizsiSasiedzi){
+	private String wybierzKlasePrzezGlosowanie(Obiekt obiekt_testowy, ArrayList<Obiekt> najblizsiSasiedzi){
 		switch(metodaGlosowania){
 			case "rownoprawne_wiekszosciowe":
 				return glosowanieRownoprawneWiekszosciowe(najblizsiSasiedzi);
 			case "wazone_odleglosciami":
-				return glosowanieWazoneOdleglosciami(najblizsiSasiedzi);
+				return glosowanieWazoneOdleglosciami(obiekt_testowy, najblizsiSasiedzi);
 			default:
 				return "";
 		}
@@ -94,8 +95,47 @@ public class KlasyfikatorKNN {
 		return indexOfMaxValue;
 	}
 	
-	private String glosowanieWazoneOdleglosciami(ArrayList<Obiekt> najblizsiSasiedzi){
-		return wywal blad;
+	private String glosowanieWazoneOdleglosciami(Obiekt obiekt_testowy, ArrayList<Obiekt> najblizsiSasiedzi){
+		ArrayList<String> etykietyKlas = Atrybuty.getAtrybutKlasowy().dziedzina;
+		double[] sumy_wazonych_glosow = new double[etykietyKlas.size()];
+		double waga;
+		Obiekt rozwazany_sasiad;
+		double licznik_wagi;
+		double mianownik_wagi = getMianownikWagi(obiekt_testowy, najblizsiSasiedzi);
+		for(int i = 0; i < najblizsiSasiedzi.size(); i++){
+			rozwazany_sasiad = najblizsiSasiedzi.get(i);
+			String klasa_rozwazanego_sasiada = rozwazany_sasiad.getEtykietaKlasy();
+			licznik_wagi = Math.exp( - getDistance(obiekt_testowy, rozwazany_sasiad) );
+			waga = licznik_wagi / mianownik_wagi;
+			//sprawdzam jakiej klasy jest rozwazany sasiad i do sumyWag dla odpowiedniej klasy dodaje wage *1 -= wazonyglos
+			for(int index_klasy = 0; index_klasy < etykietyKlas.size(); index_klasy ++){
+				if( etykietyKlas.get(index_klasy).equals(klasa_rozwazanego_sasiada) ){
+					sumy_wazonych_glosow[index_klasy] += waga * 1.0; //1 glos razy waga
+				}
+			}
+		}
+		int index_klasy_z_najwieksza_wartoscia_glosowania = getIndexOfMaxValue(sumy_wazonych_glosow);
+		return etykietyKlas.get(index_klasy_z_najwieksza_wartoscia_glosowania);
+	}
+	
+	private int getIndexOfMaxValue(double[] sumy_wazonych_glosow){
+		double maxValue = sumy_wazonych_glosow[0];
+		int indexOfMaxValue = 0;
+		for(int i = 0; i < sumy_wazonych_glosow.length; i++){
+			if(sumy_wazonych_glosow[i] > maxValue){
+				maxValue = sumy_wazonych_glosow[i];
+				indexOfMaxValue = i;
+			}
+		}
+		return indexOfMaxValue;
+	}
+	
+	private double getMianownikWagi(Obiekt obiekt_testowy, ArrayList<Obiekt> najblizsiSasiedzi){
+		double mianownik = 0;
+		for(int i = 0; i < najblizsiSasiedzi.size(); i++){
+			mianownik += Math.exp( - getDistance(obiekt_testowy, najblizsiSasiedzi.get(i)) );
+		}
+		return mianownik;
 	}
 	
 	private double[] getWariancjeAtrybutowWZbiorzeUczacym(){
